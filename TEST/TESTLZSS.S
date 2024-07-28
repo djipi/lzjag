@@ -14,7 +14,7 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-		.include	"jaguar.inc"
+		.include	"JAGUAR.INC"
 		
 		.extern		_dlzstart
 		.extern		_dlzend

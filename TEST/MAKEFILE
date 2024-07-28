@@ -3,23 +3,33 @@
 #====================================================================
 
 STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -rd -a $(STADDR) x 4000
+RMACFLAGS = -fb -g -i$(JAGSDK)/jaguar/include
+RLNFLAGS = -z -v -e -g -l -rd -a $(STADDR) x 4000
+
+all:	testlzss.cof
 
 #====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $*
-
-#====================================================================
-#       EXECUTABLES
+#       Assembles
 #====================================================================
 
-OBJ = testlzss.o delzjag.o
+delzjag.o:	../JAG.SRC/delzjag.s
+	rmac $(RMACFLAGS) -o $@ $<
+
+testlzss.o:	testlzss.s
+	rmac $(RMACFLAGS) -o $@ $<
+
+#====================================================================
+#       Executables
+#====================================================================
+
+OBJS = testlzss.o delzjag.o
  
-testlzss.cof: $(OBJ) makefile
-	aln $(ALNFLAGS) -o testlzss.cof @testlzss.lnk
+testlzss.cof: $(OBJS) makefile
+	rln $(RLNFLAGS) -o testlzss.cof -c testlzss_lnk
 
+#====================================================================
+#       Clean
+#====================================================================
+
+clean:
+	rm $(OBJS) testlzss.cof

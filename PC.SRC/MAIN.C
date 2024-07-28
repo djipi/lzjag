@@ -8,13 +8,14 @@
  * Revisions: 9/19/94 - SDS: Created 
  */                                              
  
-#include <DOS.H>
+//#include <DOS.H>
 #include <STDIO.H>
 #include <STDLIB.H>
 #include <STRING.H>
 #include "bitio.h"
+#include "dirent.h"
 
-#define NO_ERROR		0
+#define FILE_NO_ERROR		0
 #define FILE_OPEN_ERR		1
 #define FILE_READ_ERR		2
 #define FILE_WRITE_ERR		3
@@ -38,15 +39,13 @@ short error( short );
 extern void CompressFile( FILE *, BIT_FILE * );
 extern void ExpandFile( BIT_FILE *, FILE * );           
 
-int
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {       
 	FILE *fp;
 	BIT_FILE *bfp;
  	short i;
-	unsigned ret;
- 	char *cp;
-	struct _find_t fileinfo;
+	//unsigned ret = 0;
+ 	//char *cp;
 
 	filename[0] = 0;
 	
@@ -111,84 +110,81 @@ main( int argc, char *argv[] )
 		return 0;
 	}
 
-	ret = _dos_findfirst( filename, _A_RDONLY, &fileinfo );
-	while( !ret )
+	char* f;
+	while ((f = strrchr(filename, '\\')) ? (*f = '/') : 0);
+
+	DIR* dirinfo = opendir( filename);
+	if (dirinfo)
 	{
-		if( op == COMPRESS )
+		struct dirent* fileinfo;
+
+		while ((fileinfo = readdir(dirinfo)))
 		{
-			printf( "Compressing: %s ", fileinfo.name );
-			strcpy( infile, filename );
-			cp = strrchr( infile, '\\' );
-			if( cp )
-				cp++;
-			else
-				cp = infile;
+			if (strcmp(fileinfo->d_name, ".") && strcmp(fileinfo->d_name, ".."))
+			{
+				strcpy(infile, filename);
+				sprintf(infile, "%s/%s", filename, fileinfo->d_name);
 
-			strcpy( cp, fileinfo.name ); 
-			strcpy( outfile, infile );
-			cp = strrchr( outfile, '.' );
-			if( cp )
-				*cp = 0;
-			else
-				cp = infile;
+				sprintf(outfile, "%s/%s", filename, fileinfo->d_name);
+				char* cp = strrchr(outfile, '.');
+				cp ? (*cp = 0) : 0;
 
-			strcpy( cp, ".LZJ" );
-                                        
-                        fp = fopen( infile, "rb" );
-			if( fp == NULL )
-				return error( FILE_OPEN_ERR );
-                                         
-                        bfp = OpenOutputBitFile( outfile );
-			if( bfp == NULL )
-				return error( FILE_WRITE_ERR );
-			CompressFile( fp, bfp );               
-			CloseOutputBitFile( bfp );
-			fclose( fp );
-			printf( "\n" ); 
+				switch (op)
+				{
+				case COMPRESS:
+					if (!strrchr(fileinfo->d_name, '.LZJ'))
+					{
+						printf("Compressing: %s ", fileinfo->d_name);
+
+						strcat(outfile, ".LZJ");
+						fp = fopen(infile, "rb");
+						if (fp == NULL)
+							return error(FILE_OPEN_ERR);
+
+						bfp = OpenOutputBitFile(outfile);
+						if (bfp == NULL)
+							return error(FILE_WRITE_ERR);
+						CompressFile(fp, bfp);
+						CloseOutputBitFile(bfp);
+						fclose(fp);
+						printf("\n");
+					}
+					break;
+
+				case EXPAND:
+					if (strrchr(fileinfo->d_name, '.LZJ'))
+					{
+						printf("Expanding: %s ", fileinfo->d_name);
+
+						strcat(outfile, ".BIN");
+						fp = fopen(outfile, "wb");
+						if (fp == NULL)
+							return error(FILE_OPEN_ERR);
+
+							bfp = OpenInputBitFile(infile);
+							if (bfp == NULL)
+								return error(FILE_WRITE_ERR);
+
+						ExpandFile(bfp, fp);
+						CloseInputBitFile(bfp);
+						fclose(fp);
+
+						printf("\n");
+					}
+					break;
+				}
+			}
 		}
-		else
-		{                      
-			printf( "Expanding: %s ", fileinfo.name );
-			strcpy( infile, filename );
-			cp = strrchr( infile, '\\' );
-			if( cp )
-				cp++;
-			else
-				cp = infile;
 
-			strcpy( cp, fileinfo.name ); 
-			strcpy( outfile, infile );
-			cp = strrchr( outfile, '.' );
-			if( cp )
-				*cp = 0;
-			else
-				cp = infile;
+		closedir(dirinfo);
 
-			strcpy( cp, ".BIN" );
-                                          
-			fp = fopen( outfile, "wb" );
-			if( fp == NULL )
-				return error( FILE_OPEN_ERR );
+		printf("Operation Successful!\n");
 
-			bfp = OpenInputBitFile( infile );
-			if( bfp == NULL )
-				return error( FILE_WRITE_ERR );
-
-			ExpandFile( bfp, fp );
-			CloseInputBitFile( bfp );
-			fclose( fp );
-			
-			printf( "\n" );
-		}
-		ret = _dos_findnext( &fileinfo );		
-	}                              
-	printf( "Operation Successful!\n" );
-            
-	return NO_ERROR;
+		return FILE_NO_ERROR;
+	}
 }     
 
-void
-banner( void )
+void banner( void )
 {
 	printf( "\n                ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿\n" );
 	printf( "                ³  Jaguar LZSS Compression Utility  ³\n" );
@@ -197,20 +193,18 @@ banner( void )
 	printf( "                ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ\n\n" );
 }                                                                  
 
-void
-usage( void )
+void usage( void )
 {
 	printf( "ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿\n" );
 	printf( "³                                  USAGE                                     ³\n" );
 	printf( "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ\n\n" );
 	
-	printf( "lzjag filename -c|-x\n\n" );
-	printf( "     -c: Compress filename to .LZJ\n" );
-	printf( "     -x: Expand filename to .BIN\n" );
+	printf( "lzjag directory -c|-x\n\n" );
+	printf( "     -c: Compress each file, found in the directory, to .LZJ files.\n" );
+	printf( "     -x: Expand each LZJ's files, found in the directory, to .BIN files.\n" );
 }               
 
-short
-error( short err )
+short error( short err )
 {                  
 	switch( err )
 	{
@@ -223,8 +217,9 @@ error( short err )
 		case FILE_WRITE_ERR:
 			printf( "Error writing %s.\n", filename );
 			break;
-		case NO_ERROR:
+		default:
+			printf("Error unknown.\n");
 			break;
 	}
 	return err;
-}               
+}

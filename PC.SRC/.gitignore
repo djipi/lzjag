@@ -1,0 +1,8 @@
+.vs/
+x64/
+Win32/
+*.user
+Debug/
+Release/
+*.o
+*.exe

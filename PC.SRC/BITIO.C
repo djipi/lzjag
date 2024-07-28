@@ -1,7 +1,7 @@
 /************************** Start of BITIO.C *************************
  *
  * This utility file contains all of the routines needed to impement
- * bit oriented routines under either ANSI or K&R C.  It needs to be
+ * bit oriented routines.  It needs to be
  * linked with every program used in the entire book.
  *
  */
@@ -12,8 +12,7 @@
 
 #define PACIFIER_COUNT 2047
 
-BIT_FILE *OpenOutputBitFile( name )
-char *name;
+BIT_FILE *OpenOutputBitFile( char *name )
 {
     BIT_FILE *bit_file;
 
@@ -27,8 +26,7 @@ char *name;
     return( bit_file );
 }
 
-BIT_FILE *OpenInputBitFile( name )
-char *name;
+BIT_FILE *OpenInputBitFile( char *name )
 {
     BIT_FILE *bit_file;
 
@@ -42,8 +40,7 @@ char *name;
     return( bit_file );
 }
 
-void CloseOutputBitFile( bit_file )
-BIT_FILE *bit_file;
+void CloseOutputBitFile( BIT_FILE *bit_file )
 {
     if ( bit_file->mask != 0x80 )
         if ( putc( bit_file->rack, bit_file->file ) != bit_file->rack )
@@ -52,16 +49,13 @@ BIT_FILE *bit_file;
     free( (char *) bit_file );
 }
 
-void CloseInputBitFile( bit_file )
-BIT_FILE *bit_file;
+void CloseInputBitFile( BIT_FILE *bit_file )
 {
     fclose( bit_file->file );
     free( (char *) bit_file );
 }
 
-void OutputBit( bit_file, bit )
-BIT_FILE *bit_file;
-int bit;
+void OutputBit( BIT_FILE *bit_file, int bit )
 {
     if ( bit )
         bit_file->rack |= bit_file->mask;
@@ -77,10 +71,7 @@ int bit;
     }
 }
 
-void OutputBits( bit_file, code, count )
-BIT_FILE *bit_file;
-unsigned long code;
-int count;
+void OutputBits( BIT_FILE *bit_file, unsigned long code, int count )
 {
     unsigned long mask;
 
@@ -101,8 +92,7 @@ int count;
     }
 }
 
-int InputBit( bit_file )
-BIT_FILE *bit_file;
+int InputBit( BIT_FILE *bit_file )
 {
     int value;
 
@@ -120,9 +110,7 @@ BIT_FILE *bit_file;
     return( value ? 1 : 0 );
 }
 
-unsigned long InputBits( bit_file, bit_count )
-BIT_FILE *bit_file;
-int bit_count;
+unsigned long InputBits( BIT_FILE *bit_file, int bit_count )
 {
     unsigned long mask;
     unsigned long return_value;

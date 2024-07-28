@@ -3,15 +3,7 @@
 #ifndef _ERRHAND_H
 #define _ERRHAND_H
 
-#ifdef __STDC__
-
-void fatal_error( char *fmt, ... );
-
-#else   /* __STDC__ */
-
-void fatal_error();
-
-#endif  /* __STDC__ */
+void fatal_error(char* fmt, ...);
 
 #endif  /* _ERRHAND_H */
 

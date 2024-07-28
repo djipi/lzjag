@@ -55,10 +55,8 @@ struct {
 } tree[ WINDOW_SIZE + 1 ];
 
 /*
- * Function prototypes for both ANSI C compilers and their K&R brethren.
+ * Function prototypes
  */
-
-#ifdef __STDC__
 
 void InitTree( int r );
 void ContractNode( int old_node, int new_node );
@@ -66,21 +64,9 @@ void ReplaceNode( int old_node, int new_node );
 int FindNextNode( int node );
 void DeleteString( int p );
 int AddString( int new_node, int *match_position );
-void CompressFile( FILE *input, BIT_FILE *output, int argc, char *argv[] );
-void ExpandFile( BIT_FILE *input, FILE *output, int argc, char *argv[] );
+void CompressFile( FILE *input, BIT_FILE *output );
+void ExpandFile( BIT_FILE *input, FILE *output );
 
-#else
-
-void InitTree();
-void ContractNode();
-void ReplaceNode();
-int FindNextNode();
-void DeleteString();
-int AddString();
-void CompressFile();
-void ExpandFile();
-
-#endif
 
 /*
  * Since the tree is static data, it comes up with every node
@@ -88,8 +74,7 @@ void ExpandFile();
  * However, to make the tree really usable, a single phrase has to be
  * added to the tree so it has a root node.  That is done right here.
 */
-void InitTree( r )
-int r;
+void InitTree( int r )
 {
     tree[ TREE_ROOT ].larger_child = r;
     tree[ r ].parent = TREE_ROOT;
@@ -102,9 +87,7 @@ int r;
  * its descendant is broken by pulling the descendant in to overlay
  * the existing link.
  */
-void ContractNode( old_node, new_node )
-int old_node;
-int new_node;
+void ContractNode( int old_node, int new_node )
 {
     tree[ new_node ].parent = tree[ old_node ].parent;
     if ( tree[ tree[ old_node ].parent ].larger_child == old_node )
@@ -119,9 +102,7 @@ int new_node;
  * in this case, it is being replaced by a node that was not previously
  * in the tree.
  */
-void ReplaceNode( old_node, new_node )
-int old_node;
-int new_node;
+void ReplaceNode( int old_node, int new_node )
 {
     int parent;
 
@@ -142,8 +123,7 @@ int new_node;
  * the next smallest child by going to the smaller_child node, then
  * going to the end of the larger_child descendant chain.
 */
-int FindNextNode( node )
-int node;
+int FindNextNode( int node )
 {
     int next;
 
@@ -161,8 +141,7 @@ int node;
  * is guaranteed to have a null link, then replace the node to be deleted
  * with the next link.
  */
-void DeleteString( p )
-int p;
+void DeleteString( int p )
 {
     int  replacement;
 
@@ -188,9 +167,7 @@ int p;
  * the old_node is deleted, for reasons of efficiency.
  */
 
-int AddString( new_node, match_position )
-int new_node;
-int *match_position;
+int AddString( int new_node, int *match_position )
 {
     int i;
     int test_node;
@@ -243,9 +220,7 @@ int *match_position;
  * character.
  */
 
-void CompressFile( input, output )
-FILE *input;
-BIT_FILE *output;
+void CompressFile( FILE *input, BIT_FILE *output )
 {
     int i;
     int c;
@@ -305,9 +280,7 @@ BIT_FILE *output;
  * a index/length pair, and take the appropriate action.
 */
 
-void ExpandFile( input, output )
-BIT_FILE *input;
-FILE *output;
+void ExpandFile( BIT_FILE *input, FILE *output )
 {
     int i;
     int current_position;
